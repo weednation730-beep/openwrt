@@ -23,6 +23,12 @@ jobs:
             libssl-dev python3-dev rsync swig unzip \
             zlib1g-dev file wget
 
+      - name: Enable factory image for C50 W v6 BR
+        run: |
+          sed -i '/define Device\/tplink_archer-c50-w-v6/,/endef/{s/IMAGES := sysupgrade.bin/IMAGES := factory.bin sysupgrade.bin/}' \
+            target/linux/ramips/image/mt76x8.mk
+          grep -A 12 "tplink_archer-c50-w-v6" target/linux/ramips/image/mt76x8.mk | head -15
+
       - name: Update feeds
         run: |
           ./scripts/feeds update -a
@@ -40,6 +46,9 @@ jobs:
 
       - name: Build firmware
         run: make -j$(nproc) || make -j1 V=s
+
+      - name: List output files
+        run: ls -lh bin/targets/ramips/mt76x8/ | grep archer
 
       - name: Upload firmware
         uses: actions/upload-artifact@v4
