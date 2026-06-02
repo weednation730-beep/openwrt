@@ -23,11 +23,14 @@ jobs:
             libssl-dev python3-dev rsync swig unzip \
             zlib1g-dev file wget
 
-      - name: Enable factory image for C50 W v6 BR
+      - name: Patch HWID to match router Product ID (7CC6006) and enable factory.bin
         run: |
-          sed -i '/define Device\/tplink_archer-c50-w-v6/,/endef/{s/IMAGES := sysupgrade.bin/IMAGES := factory.bin sysupgrade.bin/}' \
-            target/linux/ramips/image/mt76x8.mk
-          grep -A 12 "tplink_archer-c50-w-v6" target/linux/ramips/image/mt76x8.mk | head -15
+          sed -i '/define Device\/tplink_archer-c50-w-v6/,/endef/{
+            s/TPLINK_HWID := 0x600500c/TPLINK_HWID := 0x07CC6006/
+            s/IMAGES := sysupgrade.bin/IMAGES := factory.bin sysupgrade.bin/
+          }' target/linux/ramips/image/mt76x8.mk
+          echo "=== Patched entry ==="
+          grep -A 12 "tplink_archer-c50-w-v6" target/linux/ramips/image/mt76x8.mk | head -13
 
       - name: Update feeds
         run: |
@@ -53,7 +56,7 @@ jobs:
       - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
-          name: openwrt-c50-w-v6-br
+          name: openwrt-c50-w-v6-br-hwid7CC6006
           path: bin/targets/ramips/mt76x8/*archer-c50-w-v6*
           if-no-files-found: error
           retention-days: 30
